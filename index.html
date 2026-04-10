@@ -3,199 +3,209 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AGV Control</title>
+
+<script src="https://www.unpkg.com/@eohjsc/era-widget@1.1.3/src/index.js"></script>
 
 <style>
 body {
     margin: 0;
-    font-family: Arial;
-    background: #14b8a6;
+    background: #0a0a0a;
     display: flex;
-}
-
-/* LEFT PANEL */
-.left {
-    width: 350px;
-    padding: 20px;
-}
-
-/* CARD */
-.card {
-    background: #e5e7eb;
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 20px;
-}
-
-/* TITLE */
-.title {
-    background: #065f46;
-    color: white;
-    text-align: center;
-    padding: 10px;
-    border-radius: 20px;
-    margin-bottom: 15px;
-}
-
-/* TABLE */
-.row {
-    display: flex;
-    justify-content: space-between;
-    margin: 5px 0;
-}
-
-/* BUTTON */
-button {
-    border: none;
-    padding: 10px;
-    border-radius: 10px;
-    cursor: pointer;
-}
-
-.start { background: #22c55e; color: white; }
-.stop { background: #ef4444; color: white; }
-
-/* SWITCH */
-.switch {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-input[type="checkbox"] {
-    width: 40px;
-    height: 20px;
-}
-
-/* CONTROL PAD */
-.pad {
-    display: grid;
-    grid-template-columns: repeat(3, 60px);
-    gap: 10px;
     justify-content: center;
-    margin-top: 10px;
+    align-items: center;
+    height: 100vh;
 }
 
-.pad button {
-    height: 60px;
-}
-
-/* SPEED */
-.slider {
-    width: 100%;
-}
-
-/* RIGHT MAP */
-.right {
-    flex: 1;
-    background: #d1d5db;
-    margin: 20px;
-    border-radius: 20px;
+/* KHUNG */
+.controller {
+    width: 420px;
+    background: linear-gradient(145deg, #caff4a, #9be000);
+    border-radius: 50px;
     padding: 20px;
 }
 
+/* TOP */
+.top {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* NÚT */
+.btn {
+    width: 70px;
+    height: 70px;
+    background: #222;
+    color: white;
+    border: none;
+    border-radius: 18px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* ACTIVE */
+.btn.active {
+    background: #00e5ff;
+}
+
+/* TRÁI */
+.left {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* D-PAD */
+.dpad {
+    display: grid;
+    grid-template-columns: repeat(3, 70px);
+    grid-template-rows: repeat(3, 70px);
+    gap: 10px;
+}
+
+/* DƯỚI */
+.bottom {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.small-btn {
+    width: 100px;
+    height: 45px;
+    border-radius: 15px;
+    border: none;
+    background: #222;
+    color: white;
+    font-weight: bold;
+}
+
+.small-btn.active {
+    background: #00e5ff;
+}
 </style>
 </head>
 
 <body>
 
-<div class="left">
+<div class="controller">
 
-    <!-- AGV INFO -->
-    <div class="card">
-        <div class="title">AGV INFORMATION</div>
+    <div class="top">
 
-        <div class="row"><span>ID</span><span id="agv_id">01</span></div>
-        <div class="row"><span>Status</span><span id="status">OFFLINE</span></div>
-        <div class="row"><span>Speed</span><span id="speed_val">0</span></div>
-        <div class="row"><span>Battery</span><span id="battery">--%</span></div>
-
-        <br>
-
-        <button class="start" id="btn_start">START</button>
-        <button class="stop" id="btn_stop">STOP</button>
-
-        <br><br>
-
-        <div class="switch">
-            <span>AUTO MODE</span>
-            <input type="checkbox" id="auto_mode">
+        <!-- TIẾN LÙI -->
+        <div class="left">
+            <button id="up" class="btn">↑</button>
+            <button id="down" class="btn">↓</button>
         </div>
-    </div>
 
-    <!-- MANUAL -->
-    <div class="card">
-        <div class="title">MANUAL CONTROL</div>
-
-        <div class="pad">
+        <!-- D-PAD -->
+        <div class="dpad">
             <div></div>
-            <button id="btn_up">↑</button>
+            <button id="lift_up" class="btn">⬆</button>
             <div></div>
 
-            <button id="btn_left">←</button>
-            <button id="btn_stop2">■</button>
-            <button id="btn_right">→</button>
+            <button id="left" class="btn">←</button>
+            <div></div>
+            <button id="right" class="btn">→</button>
 
             <div></div>
-            <button id="btn_down">↓</button>
+            <button id="lift_down" class="btn">⬇</button>
             <div></div>
         </div>
 
-        <br>
-
-        <input type="range" min="0" max="100" value="50" class="slider" id="speed">
     </div>
 
-</div>
+    <!-- AUTO -->
+    <div class="bottom">
+        <button id="auto" class="small-btn">AUTO</button>
+        <button id="manual" class="small-btn">MANUAL</button>
+    </div>
 
-<!-- MAP -->
-<div class="right">
-    <h2>LIVE MAP MONITOR</h2>
-    <div id="map_area">Map sẽ hiển thị ở đây</div>
 </div>
 
 <script>
+// ===== DOM =====
+const up = document.getElementById('up');
+const down = document.getElementById('down');
+const left = document.getElementById('left');
+const right = document.getElementById('right');
+const lift_up = document.getElementById('lift_up');
+const lift_down = document.getElementById('lift_down');
+const autoBtn = document.getElementById('auto');
+const manualBtn = document.getElementById('manual');
 
-// =========================
-// KẾT NỐI ESP32
-// =========================
+// ===== ERA =====
+let actions = [];
 
-// Đổi IP theo ESP32 của bạn
-const ESP_IP = "http://192.168.1.100";
+const eraWidget = new EraWidget();
 
-// gửi lệnh
-function sendCommand(cmd) {
-    fetch(`${ESP_IP}/control?cmd=${cmd}`)
-    .catch(err => console.log(err));
+eraWidget.init({
+    needActions: true,
+    maxActionsCount: 6,
+
+    onConfiguration:(config)=>{
+        actions = config.actions;
+    }
+});
+
+// ===== MOVE =====
+function sendMove(speed, angle){
+    if(actions[0]){
+        eraWidget.triggerAction(actions[0].action,{speed,angle});
+    }
 }
 
-// =========================
-// BUTTON CONTROL
-// =========================
-
-document.getElementById("btn_start").onclick = () => sendCommand("start");
-document.getElementById("btn_stop").onclick = () => sendCommand("stop");
-
-document.getElementById("btn_up").onclick = () => sendCommand("forward");
-document.getElementById("btn_down").onclick = () => sendCommand("backward");
-document.getElementById("btn_left").onclick = () => sendCommand("left");
-document.getElementById("btn_right").onclick = () => sendCommand("right");
-document.getElementById("btn_stop2").onclick = () => sendCommand("stop");
-
-// AUTO MODE
-document.getElementById("auto_mode").onchange = function() {
-    if(this.checked){
-        sendCommand("auto_on");
-    } else {
-        sendCommand("auto_off");
+// ===== LIFT =====
+function sendLift(val){
+    if(actions[3]){
+        eraWidget.triggerAction(actions[3].action,val);
     }
+}
+
+// ===== HOLD =====
+function hold(btn, down, up){
+    btn.onmousedown = ()=>{
+        btn.classList.add("active");
+        down();
+    };
+
+    btn.onmouseup = ()=>{
+        btn.classList.remove("active");
+        up();
+    };
+
+    btn.ontouchstart = (e)=>{
+        e.preventDefault();
+        btn.classList.add("active");
+        down();
+    };
+
+    btn.ontouchend = ()=>{
+        btn.classList.remove("active");
+        up();
+    };
+}
+
+// ===== GÁN =====
+hold(up, ()=>sendMove(200,0), ()=>sendMove(0,0));
+hold(down, ()=>sendMove(200,180), ()=>sendMove(0,0));
+hold(left, ()=>sendMove(200,270), ()=>sendMove(0,0));
+hold(right, ()=>sendMove(200,90), ()=>sendMove(0,0));
+
+hold(lift_up, ()=>sendLift(1), ()=>sendLift(0));
+hold(lift_down, ()=>sendLift(-1), ()=>sendLift(0));
+
+// MODE
+autoBtn.onclick = ()=>{
+    autoBtn.classList.add("active");
+    manualBtn.classList.remove("active");
+    if(actions[1]) eraWidget.triggerAction(actions[1].action,1);
 };
 
-// SPEED
-document.getElementById("speed").oninput = function() {
-    let val = this.value;
-    document.getElementById("speed_val").innerText = val;
-    sendCommand("speed_" + val);
+manualBtn.onclick = ()=>{
+    manualBtn.classList.add("active");
+    autoBtn.classList.remove("active");
+    if(actions[2]) eraWidget.triggerAction(actions[2].action,0);
 };
 
 </script>
