@@ -1,214 +1,264 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Robot Controller</title>
+    <script src="https://www.unpkg.com/@eohjsc/era-widget@1.1.3/src/index.js"></script>
+    <style>
+        :root {
+            --primary-bg: #0a0a0a;
+            --controller-gradient: linear-gradient(145deg, #caff4a, #9be000);
+            --btn-bg: #222;
+            --btn-active: #00e5ff;
+            --text-white: #ffffff;
+        }
 
-<script src="https://www.unpkg.com/@eohjsc/era-widget@1.1.3/src/index.js"></script>
+        body {
+            margin: 0;
+            background: var(--primary-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
 
-<style>
-body {
-    margin: 0;
-    background: #0a0a0a;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
+        .controller {
+            width: 90%;
+            max-width: 450px;
+            background: var(--controller-gradient);
+            border-radius: 40px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            user-select: none;
+        }
 
-/* KHUNG */
-.controller {
-    width: 420px;
-    background: linear-gradient(145deg, #caff4a, #9be000);
-    border-radius: 50px;
-    padding: 20px;
-}
+        .top-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
 
-/* TOP */
-.top {
-    display: flex;
-    justify-content: space-between;
-}
+        .movement-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
 
-/* NÚT */
-.btn {
-    width: 70px;
-    height: 70px;
-    background: #222;
-    color: white;
-    border: none;
-    border-radius: 18px;
-    font-size: 20px;
-    font-weight: bold;
-}
+        .dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
 
-/* ACTIVE */
-.btn.active {
-    background: #00e5ff;
-}
+        .btn {
+            width: 70px;
+            height: 70px;
+            background: var(--btn-bg);
+            color: var(--text-white);
+            border: none;
+            border-radius: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+            box-shadow: 0 4px 0px #000;
+        }
 
-/* TRÁI */
-.left {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
+        .btn:active, .btn.active {
+            background: var(--btn-active);
+            transform: translateY(4px);
+            box-shadow: none;
+            color: #000;
+        }
 
-/* D-PAD */
-.dpad {
-    display: grid;
-    grid-template-columns: repeat(3, 70px);
-    grid-template-rows: repeat(3, 70px);
-    gap: 10px;
-}
+        .mode-section {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            border-top: 2px solid rgba(0,0,0,0.1);
+            padding-top: 20px;
+        }
 
-/* DƯỚI */
-.bottom {
-    margin-top: 15px;
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-}
+        .small-btn {
+            flex: 1;
+            height: 50px;
+            border-radius: 15px;
+            border: none;
+            background: var(--btn-bg);
+            color: white;
+            font-weight: 800;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
 
-.small-btn {
-    width: 100px;
-    height: 45px;
-    border-radius: 15px;
-    border: none;
-    background: #222;
-    color: white;
-    font-weight: bold;
-}
+        .small-btn.active {
+            background: var(--btn-active);
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+        }
 
-.small-btn.active {
-    background: #00e5ff;
-}
-</style>
+        .empty { width: 70px; height: 70px; }
+
+        /* Trạng thái kết nối */
+        #status-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4444;
+            border: 2px solid #fff;
+            transition: background 0.3s;
+        }
+        #status-indicator.online { background: #44ff44; }
+    </style>
 </head>
-
 <body>
 
+<div id="status-indicator"></div>
+
 <div class="controller">
-
-    <div class="top">
-
-        <!-- TIẾN LÙI -->
-        <div class="left">
+    <div class="top-section">
+        <div class="movement-grid">
             <button id="up" class="btn">↑</button>
             <button id="down" class="btn">↓</button>
         </div>
 
-        <!-- D-PAD -->
         <div class="dpad">
-            <div></div>
-            <button id="lift_up" class="btn">⬆</button>
-            <div></div>
+            <div class="empty"></div>
+            <button id="lift_up" class="btn">▲</button>
+            <div class="empty"></div>
 
             <button id="left" class="btn">←</button>
-            <div></div>
+            <div class="empty"></div>
             <button id="right" class="btn">→</button>
 
-            <div></div>
-            <button id="lift_down" class="btn">⬇</button>
-            <div></div>
+            <div class="empty"></div>
+            <button id="lift_down" class="btn">▼</button>
+            <div class="empty"></div>
         </div>
-
     </div>
 
-    <!-- AUTO -->
-    <div class="bottom">
+    <div class="mode-section">
         <button id="auto" class="small-btn">AUTO</button>
-        <button id="manual" class="small-btn">MANUAL</button>
+        <button id="manual" class="small-btn active">MANUAL</button>
     </div>
-
 </div>
 
 <script>
-// ===== DOM =====
-const up = document.getElementById('up');
-const down = document.getElementById('down');
-const left = document.getElementById('left');
-const right = document.getElementById('right');
-const lift_up = document.getElementById('lift_up');
-const lift_down = document.getElementById('lift_down');
-const autoBtn = document.getElementById('auto');
-const manualBtn = document.getElementById('manual');
+    const eraWidget = new EraWidget();
+    let configActions = [];
+    const statusEl = document.getElementById('status-indicator');
 
-// ===== ERA =====
-let actions = [];
+    /**
+     * Sửa lỗi "Invalid eraOrigin": 
+     * EraWidget SDK kiểm tra nguồn gốc (origin) để đảm bảo bảo mật. 
+     * Trong một số môi trường preview hoặc Dashboard, origin có thể bị chặn hoặc sai lệch.
+     * Chúng ta sử dụng window.origin hoặc fallback về domain chính thức của Era.
+     */
+    const currentOrigin = window.origin || window.location.origin;
+    const validatedOrigin = (currentOrigin === 'null' || !currentOrigin) ? '*' : currentOrigin;
 
-const eraWidget = new EraWidget();
+    eraWidget.init({
+        eraOrigin: validatedOrigin, 
+        needActions: true,
+        maxActionsCount: 6,
+        
+        // Sự kiện nhận cấu hình từ Dashboard
+        onConfiguration: (config) => {
+            configActions = config.actions;
+            console.log("Era Configuration Loaded:", config);
+        },
 
-eraWidget.init({
-    needActions: true,
-    maxActionsCount: 6,
+        // Sự kiện nhận giá trị thực tế từ phần cứng
+        onValues: (values) => {
+            console.log("Received values from Robot:", values);
+        },
 
-    onConfiguration:(config)=>{
-        actions = config.actions;
+        // Sự kiện thay đổi trạng thái kết nối
+        onConnect: () => {
+            statusEl.classList.add('online');
+            console.log("Robot Connected");
+        },
+
+        onDisconnect: () => {
+            statusEl.classList.remove('online');
+            console.log("Robot Disconnected");
+        },
+
+        // Sự kiện khi người dùng thay đổi thiết lập trong Dashboard
+        onActionUpdated: (action) => {
+            console.log("Action updated:", action);
+        }
+    });
+
+    // Helper gửi lệnh điều khiển
+    const triggerAction = (index, value) => {
+        if (configActions && configActions[index]) {
+            eraWidget.triggerAction(configActions[index].action, value);
+        }
+    };
+
+    const sendMove = (speed, angle) => triggerAction(0, { speed, angle });
+    const sendLift = (val) => triggerAction(3, val);
+
+    // Xử lý giữ nút
+    function setupHoldButton(id, onStart, onEnd) {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        
+        const start = (e) => {
+            if (e.cancelable) e.preventDefault();
+            btn.classList.add("active");
+            onStart();
+        };
+
+        const stop = () => {
+            if (btn.classList.contains("active")) {
+                btn.classList.remove("active");
+                onEnd();
+            }
+        };
+
+        btn.onmousedown = start;
+        window.addEventListener('mouseup', stop);
+        btn.ontouchstart = start;
+        btn.ontouchend = stop;
+        btn.ontouchcancel = stop;
     }
-});
 
-// ===== MOVE =====
-function sendMove(speed, angle){
-    if(actions[0]){
-eraWidget.triggerAction(actions[0].action,{speed,angle});
-    }
-}
+    setupHoldButton('up', () => sendMove(200, 0), () => sendMove(0, 0));
+    setupHoldButton('down', () => sendMove(200, 180), () => sendMove(0, 0));
+    setupHoldButton('left', () => sendMove(200, 270), () => sendMove(0, 0));
+    setupHoldButton('right', () => sendMove(200, 90), () => sendMove(0, 0));
+    setupHoldButton('lift_up', () => sendLift(1), () => sendLift(0));
+    setupHoldButton('lift_down', () => sendLift(-1), () => sendLift(0));
 
-// ===== LIFT =====
-function sendLift(val){
-    if(actions[3]){
-        eraWidget.triggerAction(actions[3].action,val);
-    }
-}
+    const autoBtn = document.getElementById('auto');
+    const manualBtn = document.getElementById('manual');
 
-// ===== HOLD =====
-function hold(btn, down, up){
-    btn.onmousedown = ()=>{
-        btn.classList.add("active");
-        down();
+    autoBtn.onclick = () => {
+        autoBtn.classList.add("active");
+        manualBtn.classList.remove("active");
+        triggerAction(1, 1);
     };
 
-    btn.onmouseup = ()=>{
-        btn.classList.remove("active");
-        up();
+    manualBtn.onclick = () => {
+        manualBtn.classList.add("active");
+        autoBtn.classList.remove("active");
+        triggerAction(2, 0);
     };
-
-    btn.ontouchstart = (e)=>{
-        e.preventDefault();
-        btn.classList.add("active");
-        down();
-    };
-
-    btn.ontouchend = ()=>{
-        btn.classList.remove("active");
-        up();
-    };
-}
-
-// ===== GÁN =====
-hold(up, ()=>sendMove(200,0), ()=>sendMove(0,0));
-hold(down, ()=>sendMove(200,180), ()=>sendMove(0,0));
-hold(left, ()=>sendMove(200,270), ()=>sendMove(0,0));
-hold(right, ()=>sendMove(200,90), ()=>sendMove(0,0));
-
-hold(lift_up, ()=>sendLift(1), ()=>sendLift(0));
-hold(lift_down, ()=>sendLift(-1), ()=>sendLift(0));
-
-// MODE
-autoBtn.onclick = ()=>{
-    autoBtn.classList.add("active");
-    manualBtn.classList.remove("active");
-    if(actions[1]) eraWidget.triggerAction(actions[1].action,1);
-};
-
-manualBtn.onclick = ()=>{
-    manualBtn.classList.add("active");
-    autoBtn.classList.remove("active");
-    if(actions[2]) eraWidget.triggerAction(actions[2].action,0);
-};
 
 </script>
-
 </body>
 </html>
